@@ -1,4 +1,4 @@
-enum GameStatus {
+enum RoomStatus {
 	Waiting = "Waiting",
 	Starting = "Starting",
 	InProgress = "In Progress",
@@ -6,4 +6,4 @@ enum GameStatus {
 	Results = "Results",
 }
 
-export default GameStatus;
+export default RoomStatus;
