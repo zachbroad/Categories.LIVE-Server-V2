@@ -48,7 +48,7 @@ class Client {
     }
 
     public error(message: string): void {
-        this.socket.emit('message', `[ERROR] ${message}`);
+        this.socket.emit('serverMessage', `[ERROR] ${message}`);
     }
 
     public leaveRoom(room: Room): void {

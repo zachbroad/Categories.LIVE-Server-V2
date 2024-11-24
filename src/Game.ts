@@ -20,11 +20,13 @@ class Game {
     static readonly LOBBY_DURATION = 3;
     static readonly NUMBER_OF_ROUNDS = 3;
     static readonly RESULTS_DURATION = 60;
-    static readonly ROUND_DURATION = 90;
+    static readonly ROUND_DURATION = 6;
     static readonly WAIT_FOR_ANSWERS_DURATION = 3.5;
     static readonly SCORE_STRATEGIES = {
         STRICT_GPT4o: new ScoreStrategyOpenAI("gpt-4o", "strict"),
         LENIENT_GPT4o: new ScoreStrategyOpenAI("gpt-4o", "lenient"),
+        STRICT_GPT4o_Mini: new ScoreStrategyOpenAI("gpt-4o-mini", "strict"),
+        LENIENT_GPT4o_Mini: new ScoreStrategyOpenAI("gpt-4o-mini", "lenient"),
     }
 
     // Scattergories letters
@@ -46,6 +48,22 @@ class Game {
         this.roundDuration = Game.ROUND_DURATION;
         this.currentPrompts = [];
         this.setPromptsToThisRound();
+    }
+
+    public toJSON(): object {
+        return {
+            rounds: this.rounds,
+            currentRound: this.currentRound,
+            cards: this.cards,
+            results: this.results,
+            hasBeenScored: this.hasBeenScored,
+            setOfLetters: this.setOfLetters,
+            letter: this.letter,
+            lobbyDuration: this.lobbyDuration,
+            resultsDuration: this.resultsDuration,
+            roundDuration: this.roundDuration,
+            currentPrompts: this.currentPrompts,
+        };
     }
 
     /**

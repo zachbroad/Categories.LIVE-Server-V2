@@ -17,6 +17,7 @@ import GlobalRoomList from './Network/GlobalRoomList';
 import Client from './Client';
 import Room from './Room';
 import assert from 'assert';
+import ChatMessage from './ChatMessage';
 
 const snsClient = new SNS();
 const sqsClient = new SQS({
@@ -176,7 +177,7 @@ io.on('connection', (socket: Socket) => {
 		let chatMessage: ChatMessage = {
 			username: client.username,
 			message: message,
-			timestamp: new Date().toLocaleTimeString()
+			timestamp: new Date()
 		};
 
 		room.chat = room.chat.concat(chatMessage);
@@ -280,11 +281,12 @@ io.on('connection', (socket: Socket) => {
 		room.updateRoom(); // Send updated room data to clients
 	});
 
-	socket.on("room:voteGoToLobby", async (data: {slug: string}) => {
+	socket.on("room:voteGoToLobby", async (data: {room: {slug: string}}) => {
 		assert(data, "Data is required");
-		assert(data.slug, "Slug is required");
+		assert(data.room, "Room data is required");
+		assert(data.room.slug, "Room slug is required");
 
-		const {slug} = data;
+		const {slug} = data.room;
 		const room = await DIContainer.roomService.getRoom(slug);
 		if (!room) {
 			console.error(`${client} tried to go to lobby on room ${slug} but it doesn't exist!`);

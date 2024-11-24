@@ -6,6 +6,7 @@ import slugify from 'slugify';
 import Game from './Game';
 import assert from 'assert';
 import DIContainer from './DIContainer';
+import ScorerOpenAI from './ScorerOpenAI';
 
 class Room {
 	public id: UUID;
@@ -52,7 +53,7 @@ class Room {
 			chat: this.chat,
 			scores: this.scores,
 			clickedOkResults: this.clickedOkResults,
-			game: this.game,
+			game: this.game?.toJSON(),
 			isPublic: this.isPublic,
 			currentRound: this.currentRound
 		};
@@ -225,7 +226,7 @@ class Room {
 	}
 
 	public sendToAllClients(msg: string, data: any): void {
-		// Implementation will depend on your socket setup
+		DIContainer.socketIO.to(this.slug).emit(msg, data);
 	}
 
 	public alertToAllClients(msg: string): void {
@@ -261,9 +262,54 @@ class Room {
 		this.owner = client;
 	}
 
-	private async scoreGame(letter: string, prompts: string[], answers: string[]): Promise<number[]> {
-		// Implementation will depend on your scoring logic
-		return [];
+	public async handleScoring(): Promise<void> {
+		console.log(`${this.slug} is scoring...`);
+
+		this.game.hasBeenScored = true;
+
+		// Start all the score calculations concurrently and wait for them to finish
+		const scoreCalculations = await Promise.all(this.clients.map(client => {
+			const scorer = new ScorerOpenAI("gpt-4o-mini", "strict");
+			return scorer.scoreGame(this.game.letter, this.game.currentPrompts, this.game.results[client.id].answers);
+		}));
+
+		// Process the results after all calculations have completed
+		let highScore = 0;
+
+		// Loop through each client's answers
+		scoreCalculations.forEach((scoredAnswers, index) => {
+			const client = this.clients[index];
+			const score = scoredAnswers.reduce((a, b) => a + b, 0);
+
+			this.clickedOkResults[client.id] = false;
+			this.game.results[client.id].results = scoredAnswers;
+			this.game.results[client.id].score = score;
+
+			if (score > highScore) {
+				highScore = score;
+				this.game.winner = client;
+			}
+		});
+
+		// If everyone has 0, there's no winner so don't add for score
+		if (this.game.winner) {
+			this.scores[this.game.winner.id] += 1;
+		}
+
+		// Set room status to results
+		this.status = RoomStatus.Results;
+		this.updateRoom();
+
+		// Send results
+		DIContainer.socketIO.to(this.slug).emit("room:results", this.game.results);
+
+		// Show the results for a bit before returning to the lobby
+		setTimeout(() => {
+			// Set to new round
+			this.status = RoomStatus.Waiting;
+			this.setUpNewGame();
+			this.updateRoom();
+		}, 1000 * Game.RESULTS_DURATION);
 	}
 }
 

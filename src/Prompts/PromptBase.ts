@@ -35,6 +35,9 @@ Inputs:
 
 Output:
 [0, 1]
+
+Do not return any markdown or other formatting. Just the array of 0s and 1s.
+Do not provide a \`\`\`json\`\`\` prefix or suffix.
 `;
 
 // APPEND THIS 

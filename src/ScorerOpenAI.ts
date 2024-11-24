@@ -5,11 +5,11 @@ import BaseScorer from "./BaseScorer";
 class ScorerOpenAI extends BaseScorer implements IScorer {
   constructor(
     private model: string,
-    prompt: string,
+    private promptRuleType: PromptRuleType,
     private openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
   ) {
-    super(prompt);
-  }
+    super(promptRuleType);
+   }
 
   async scoreGame(letter: string, prompts: string[], answers: string[]): Promise<number[]> {
     const prompt = this.formatPrompt(letter, prompts, answers);

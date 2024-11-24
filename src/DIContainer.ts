@@ -45,7 +45,7 @@ export class Container {
         if (!Container.instance) {
             throw new Error('Container must be initialized before use');
         }
-        return Container.instance._socketIO;
+        return Container.instance._socketIO as Server;
     }
 
     public static setSocketIO(socketIO: Server): void {

@@ -1,10 +1,11 @@
 import IScorer from "./IScorer";
+import PROMPT_MAP from "./Prompts/PromptMap";
 
 class BaseScorer implements IScorer {
     private prompt: string;
 
-    constructor(prompt: PromptRuleType) {
-        this.prompt = PROMPT_MAP[prompt];
+    constructor(promptRuleType: PromptRuleType) {
+        this.prompt = PROMPT_MAP[promptRuleType];
     }
 
     async scoreGame(letter: string, prompts: string[], answers: string[]): Promise<number[]> {

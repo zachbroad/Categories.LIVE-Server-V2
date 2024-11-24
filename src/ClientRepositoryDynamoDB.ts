@@ -60,7 +60,7 @@ class ClientRepositoryDynamoDB implements IClientRepository {
     }
 
     private mapToClient(item: Record<string, any>): Client {
-        const client = new Client(item.username.S, item.id.S);
+        const client = new Client(item.username.S, item.id.S, item.address.S);
         client.id = item.id.S;
         return client;
     }
