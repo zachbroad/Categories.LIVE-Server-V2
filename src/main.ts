@@ -1,23 +1,19 @@
 import 'dotenv/config';
 import fastify from 'fastify';
 import { Server, Socket } from 'socket.io';
-import Logger from './Logger';
-import { ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData } from './SocketIO';
-import { ddb } from './DynamoDB';
-import { MOTD, SERVER_HOST, SERVER_PORT } from './Config';
+import Logger from './Logger.js';
+import { ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData } from './SocketIO.js';
+import { ddb } from './DynamoDB.js';
+import { MOTD, SERVER_HOST, SERVER_PORT } from './Config.js';
 import { createAdapter } from "@socket.io/aws-sqs-adapter";
 import { SNS } from "@aws-sdk/client-sns";
 import { SQS } from "@aws-sdk/client-sqs";
-import DIContainer from './DIContainer';
+import DIContainer from './DIContainer.js';
 import cors from '@fastify/cors';
-import GlobalDisconnect from './Network/GlobalDisconnect';
-import GlobalConnection from './Network/GlobalConnection';
-import GlobalMessage from './Network/GlobalMessage';
-import GlobalRoomList from './Network/GlobalRoomList';
-import Client from './Client';
-import Room from './Room';
+import Client from './Client.js';
+import Room from './Room.js';
 import assert from 'assert';
-import ChatMessage from './ChatMessage';
+import ChatMessage from './ChatMessage.js';
 
 const snsClient = new SNS();
 const sqsClient = new SQS({
@@ -117,9 +113,6 @@ io.on('connection', (socket: Socket) => {
 		}
 
 		const room = await DIContainer.roomService.createRoom(slug, 10, client);
-		room.addClient(client);
-		await DIContainer.roomService.updateRoom(room);
-
 		let [success, error] = room.addClient(client);
 		if (!success) {
 			client.error(error || "Unknown error while adding client to room");
@@ -132,7 +125,12 @@ io.on('connection', (socket: Socket) => {
 
 	socket.on("room:data", (room: Room) => {
 		console.log(`${client.username} is getting data for the room with the slug ${room.slug}`);
-		room.updateRoom();
+		try {
+			room.updateRoom();
+		} catch (error) {
+			console.error(error);
+			client.error("Failed to get room data");
+		}
 	});
 
 	socket.on("room:join", async (slug: string) => {
@@ -244,9 +242,9 @@ io.on('connection', (socket: Socket) => {
 
 
 		// Store answers
-		room.game.results[client.id] = {};
-		room.game.results[client.id].answers = answers;
-		room.game.results[client.id].results = [];
+		room.game!.results[client.id] = {};
+		room.game!.results[client.id].answers = answers;
+		room.game!.results[client.id].results = [];
 
 		// Check if everyone has provided answers
 		if (room.hasEveryoneSubmittedAnswers()) {
@@ -282,11 +280,13 @@ io.on('connection', (socket: Socket) => {
 	});
 
 	socket.on("room:voteGoToLobby", async (data: {room: {slug: string}}) => {
+		console.log(`${client} wants to go to lobby on room ${data.room.slug}`);
 		assert(data, "Data is required");
 		assert(data.room, "Room data is required");
 		assert(data.room.slug, "Room slug is required");
 
 		const {slug} = data.room;
+
 		const room = await DIContainer.roomService.getRoom(slug);
 		if (!room) {
 			console.error(`${client} tried to go to lobby on room ${slug} but it doesn't exist!`);

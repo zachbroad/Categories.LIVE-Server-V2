@@ -1,4 +1,4 @@
-import PromptBase from "./PromptBase";
+import PromptBase from "./PromptBase.js";
 
 const PromptStrict = `${PromptBase}
 

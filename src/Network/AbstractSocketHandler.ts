@@ -1,5 +1,5 @@
 import { Server, Socket } from "socket.io";
-import Client from "../Client";
+import Client from "../Client.js";
 
 export abstract class AbstractSocketHandler {
     public static event: string;

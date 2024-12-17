@@ -1,6 +1,6 @@
 import { Socket } from "socket.io";
-import Room from "./Room";
-import DIContainer from "./DIContainer";
+import Room from "./Room.js";
+import DIContainer from "./DIContainer.js";
 
 class Client {
 	public id: string;
@@ -54,6 +54,7 @@ class Client {
     public leaveRoom(room: Room): void {
         if (room.clients.includes(this)) {
             room.removeClient(this);
+            this.roomSlug = null;
         } else {
             this.error(`You are not in room ${room.slug}`);
         }
@@ -71,6 +72,8 @@ class Client {
                 console.log(`${room.slug} is empty, deleting...`);
                 await DIContainer.roomService.deleteRoom(room.id);
             }
+
+            this.roomSlug = null;
         } else {
             console.log(`${this.username} was not in any room.`);
         }

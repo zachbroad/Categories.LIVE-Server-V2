@@ -1,6 +1,6 @@
 import { PutItemCommand, GetItemCommand, UpdateItemCommand, DeleteItemCommand, ScanCommand, DynamoDB } from '@aws-sdk/client-dynamodb';
-import Room from './Room';
-import Client from './Client';
+import Room from './Room.js';
+import Client from './Client.js';
 
 class RoomRepositoryDynamoDB {
 	constructor(

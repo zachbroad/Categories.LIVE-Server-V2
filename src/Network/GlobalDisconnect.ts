@@ -1,31 +1,30 @@
-import { AbstractSocketHandler } from "./AbstractSocketHandler";
-import { Server, Socket } from "socket.io";
+import Client from "../Client.js";
+import { AbstractSocketHandler } from "./AbstractSocketHandler.js";
 
 class GlobalDisconnect extends AbstractSocketHandler {
     public static event = "disconnect";
 
-    handle(data: any): void {
+    handle(): void {
         console.log(`Handling ${this}'s disconnection`);
         // get client
-        const client = this.client;
+        const client: Client = this.sender;
 
         // get their current room
-        let room = this.room;
+        client.getRoom().then((room) => {
+            if (room) {
+                // Remove from room if they're in a room
+                console.log(`${this} is in room ${room}, removing...`);
+                room.removeClient(client);
 
-        if (room) {
-            // Remove from room if they're in a room
-            console.log(`${this} is in room ${room}, removing...`);
-            room.removeClient(this);
-
-            // Is the room now empty? If so, let's delete it.
-            if (room.isEmpty()) {
-                console.log(`Room ${room.slug} is empty... destroying!`);
-                room.destroy();
+                // Is the room now empty? If so, let's delete it.
+                if (room.isEmpty()) {
+                    console.log(`Room ${room.slug} is empty... destroying!`);
+                    room.destroy();
+                }
+            } else {
+                console.log(`${this} is not in any rooms...`);
             }
-
-        } else {
-            console.log(`${this} is not in any rooms...`);
-        }
+        });
     }
 }
 

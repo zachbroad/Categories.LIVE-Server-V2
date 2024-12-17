@@ -1,16 +1,12 @@
-import UserService from './UserService';
-import RoomService from './RoomService';
-import UserRepository from './UserRepository';
-import RoomRepository from './RoomRepository';
-import { DB_CONFIG } from './Config';
+import ClientService from './ClientService.js';
+import RoomService from './RoomService.js';
+import ClientRepositoryMemory from './ClientRepositoryMemory.js';
+import RoomRepositoryMemory from './RoomRepositoryMemory.js';
 export class Container {
-    static instance;
-    _userService;
-    _roomService;
     constructor(ddb) {
-        const userRepository = new UserRepository(ddb, DB_CONFIG.USER_TABLE);
-        const roomRepository = new RoomRepository(ddb, DB_CONFIG.ROOM_TABLE);
-        this._userService = new UserService(userRepository);
+        const clientRepository = new ClientRepositoryMemory();
+        const roomRepository = new RoomRepositoryMemory();
+        this._clientService = new ClientService(clientRepository);
         this._roomService = new RoomService(roomRepository);
     }
     static initialize(ddb) {
@@ -19,17 +15,29 @@ export class Container {
         }
         Container.instance = new Container(ddb);
     }
-    static get userService() {
+    static get clientService() {
         if (!Container.instance) {
             throw new Error('Container must be initialized before use');
         }
-        return Container.instance._userService;
+        return Container.instance._clientService;
     }
     static get roomService() {
         if (!Container.instance) {
             throw new Error('Container must be initialized before use');
         }
         return Container.instance._roomService;
+    }
+    static get socketIO() {
+        if (!Container.instance) {
+            throw new Error('Container must be initialized before use');
+        }
+        return Container.instance._socketIO;
+    }
+    static setSocketIO(socketIO) {
+        if (!Container.instance) {
+            throw new Error('Container must be initialized before use');
+        }
+        Container.instance._socketIO = socketIO;
     }
 }
 export default Container;

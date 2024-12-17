@@ -1,5 +1,5 @@
-import Client from "./Client";
-import IClientRepository from "./IClientRepository";
+import Client from "./Client.js";
+import IClientRepository from "./IClientRepository.js";
 
 class ClientService {
     public constructor(

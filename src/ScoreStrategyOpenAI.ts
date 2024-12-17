@@ -1,6 +1,6 @@
 import "dotenv/config";
 import OpenAI from "openai";
-import BaseScorer from "./BaseScorer";
+import BaseScorer from "./BaseScorer.js";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,

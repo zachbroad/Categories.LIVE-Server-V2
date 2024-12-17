@@ -1,5 +1,5 @@
-import PromptStrict from "./PromptStrict";
-import PromptLenient from "./PromptLenient";
+import PromptStrict from "./PromptStrict.js";
+import PromptLenient from "./PromptLenient.js";
 
 const PROMPT_MAP = {
     strict: PromptStrict,

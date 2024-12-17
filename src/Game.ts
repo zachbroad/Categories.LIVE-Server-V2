@@ -1,6 +1,7 @@
 import fs from "fs";
 import _ from "lodash";
-import ScoreStrategyOpenAI from "./ScoreStrategyOpenAI";
+import ScoreStrategyOpenAI from "./ScoreStrategyOpenAI.js";
+import Client from "./Client.js";
 
 class Game {
     public rounds: number;
@@ -14,7 +15,7 @@ class Game {
     public resultsDuration: number;
     public roundDuration: number;
     public currentPrompts: string[];
-
+    public winner: Client | null;
 
     // Timer
     static readonly LOBBY_DURATION = 3;
@@ -48,6 +49,7 @@ class Game {
         this.roundDuration = Game.ROUND_DURATION;
         this.currentPrompts = [];
         this.setPromptsToThisRound();
+        this.winner = null;
     }
 
     public toJSON(): object {
@@ -63,6 +65,7 @@ class Game {
             resultsDuration: this.resultsDuration,
             roundDuration: this.roundDuration,
             currentPrompts: this.currentPrompts,
+            winner: this.winner,
         };
     }
 

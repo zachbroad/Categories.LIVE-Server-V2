@@ -1,22 +1,21 @@
 class RoomService {
-    roomRepository;
     constructor(roomRepository) {
         this.roomRepository = roomRepository;
     }
-    async createRoom(name, capacity, owner) {
-        return this.roomRepository.createRoom(name, capacity, owner);
+    async createRoom(slug, capacity, owner) {
+        return this.roomRepository.createRoom(slug, capacity, owner);
     }
-    async getRoom(id) {
-        return this.roomRepository.getRoom(id);
+    async getRoom(slug) {
+        return this.roomRepository.getRoom(slug);
     }
     async updateRoom(room) {
         return this.roomRepository.updateRoom(room);
     }
-    async deleteRoom(id) {
-        return this.roomRepository.deleteRoom(id);
+    async deleteRoom(slug) {
+        return this.roomRepository.deleteRoom(slug);
     }
     async getAllRooms() {
-        return this.roomRepository.getAllRooms();
+        return this.roomRepository.getAllRooms(); // TODO: handle private/public rooms
     }
 }
 export default RoomService;

@@ -1,4 +1,4 @@
-import Client from "./Client";
+import Client from "./Client.js";
 
 interface IClientRepository {
     createClient(client: Client): Promise<Client>;

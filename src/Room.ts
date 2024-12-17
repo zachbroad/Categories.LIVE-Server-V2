@@ -1,12 +1,11 @@
 import { v4 as uuidv4 } from 'uuid';
-import Client from './Client';
-import RoomStatus from './RoomStatus';
-import ChatMessage from './ChatMessage';
+import Client from './Client.js';
+import RoomStatus from './RoomStatus.js';
+import ChatMessage from './ChatMessage.js';
+import Game from './Game.js';
+import DIContainer from './DIContainer.js';
+import ScorerOpenAI from './ScorerOpenAI.js';
 import slugify from 'slugify';
-import Game from './Game';
-import assert from 'assert';
-import DIContainer from './DIContainer';
-import ScorerOpenAI from './ScorerOpenAI';
 
 class Room {
 	public id: UUID;
@@ -26,7 +25,7 @@ class Room {
 	constructor(name: string, capacity: number = 10, owner: Client | null = null, isPublic: boolean = true) {
 		this.id = uuidv4();
 		this.name = name;
-		this.slug = slugify(name, { lower: true });
+		this.slug = slugify.default(name, { lower: true });
 		this.capacity = capacity;
 		this.status = RoomStatus.Waiting;
 		this.clients = [];
@@ -96,7 +95,7 @@ class Room {
 				this.handleRequestAnswersAndPassToGPT();
 
 				setTimeout(async () => {
-					if (!this.game.hasBeenScored) {
+					if (!this.game!.hasBeenScored) {
 						this.handleScoring();
 					}
 				}, 1000 * Game.WAIT_FOR_ANSWERS_DURATION);
@@ -116,54 +115,6 @@ class Room {
 		this.updateRoom();
 		this.requestAnswers();
 	}
-
-	private async handleScoring(): Promise<void> {
-		if (!this.game) {
-			console.error(`${this.slug} has no game to score!`);
-			return;
-		}
-
-		console.log(`${this.slug} is scoring...`);
-		this.game.hasBeenScored = true;
-
-		const scoreCalculations = await Promise.all(
-			this.clients.map(client => 
-				this.scoreGame(this.game.letter, this.game.currentPrompts, this.game.results[client.id].answers)
-			)
-		);
-
-		let highScore = 0;
-
-		scoreCalculations.forEach((scoredAnswers, index) => {
-			const client = this.clients[index];
-			const score = scoredAnswers.reduce((a, b) => a + b, 0);
-
-			this.clickedOkResults[client.id] = false;
-			this.game.results[client.id].results = scoredAnswers;
-			this.game.results[client.id].score = score;
-
-			if (score > highScore) {
-				highScore = score;
-				this.game.winner = client;
-			}
-		});
-
-		if (this.game.winner) {
-			this.scores[this.game.winner.id] += 1;
-		}
-
-		this.status = RoomStatus.Results;
-		this.updateRoom();
-
-		this.sendToAllClients("room:results", this.game.results);
-
-		setTimeout(() => {
-			this.status = RoomStatus.Waiting;
-			this.setUpNewGame();
-			this.updateRoom();
-		}, 1000 * Game.RESULTS_DURATION);
-	}
-
 	public addClient(client: Client): [boolean, string | null] {
 		if (this.hasClient(client)) {
 			client.error("You're already in that room!");
@@ -185,7 +136,7 @@ class Room {
 		this.clients = this.clients.concat(client);
 		client.message(`You joined ${this.name}`);
 
-		this.sendToAllClients("room:join", client);
+		// this.sendToAllClients("room:join", client);
 		this.updateRoom();
 
 		return [true, null];
@@ -254,7 +205,7 @@ class Room {
 	}
 
 	public hasEveryoneSubmittedAnswers(): boolean {
-		return Object.keys(this.game.results).length === this.clients.length;
+		return Object.keys(this.game!.results).length === this.clients.length;
 	}
 
 	public setOwner(client: Client): void {
@@ -265,12 +216,12 @@ class Room {
 	public async handleScoring(): Promise<void> {
 		console.log(`${this.slug} is scoring...`);
 
-		this.game.hasBeenScored = true;
+		this.game!.hasBeenScored = true;
 
 		// Start all the score calculations concurrently and wait for them to finish
 		const scoreCalculations = await Promise.all(this.clients.map(client => {
 			const scorer = new ScorerOpenAI("gpt-4o-mini", "strict");
-			return scorer.scoreGame(this.game.letter, this.game.currentPrompts, this.game.results[client.id].answers);
+			return scorer.scoreGame(this.game!.letter, this.game!.currentPrompts, this.game!.results[client.id].answers);
 		}));
 
 		// Process the results after all calculations have completed
@@ -282,18 +233,18 @@ class Room {
 			const score = scoredAnswers.reduce((a, b) => a + b, 0);
 
 			this.clickedOkResults[client.id] = false;
-			this.game.results[client.id].results = scoredAnswers;
-			this.game.results[client.id].score = score;
+			this.game!.results[client.id].results = scoredAnswers;
+			this.game!.results[client.id].score = score;
 
 			if (score > highScore) {
 				highScore = score;
-				this.game.winner = client;
+				this.game!.winner = client;
 			}
 		});
 
 		// If everyone has 0, there's no winner so don't add for score
-		if (this.game.winner) {
-			this.scores[this.game.winner.id] += 1;
+		if (this.game!.winner) {
+			this.scores[this.game!.winner.id] += 1;
 		}
 
 		// Set room status to results
@@ -301,7 +252,7 @@ class Room {
 		this.updateRoom();
 
 		// Send results
-		DIContainer.socketIO.to(this.slug).emit("room:results", this.game.results);
+		DIContainer.socketIO.to(this.slug).emit("room:results", this.game!.results);
 
 		// Show the results for a bit before returning to the lobby
 		setTimeout(() => {

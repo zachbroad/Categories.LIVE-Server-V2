@@ -1,5 +1,5 @@
-import Room from "./Room";
-import Client from "./Client";
+import Room from "./Room.js";
+import Client from "./Client.js";
 
 interface IRoomRepository {
     createRoom(name: string, capacity: number, owner: Client): Promise<Room>;

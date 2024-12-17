@@ -1,4 +1,5 @@
-import { AbstractSocketHandler } from "./AbstractSocketHandler";
+import DIContainer from "../DIContainer.js";
+import { AbstractSocketHandler } from "./AbstractSocketHandler.js";
 
 interface GlobalMessageData {
     message: string;
@@ -17,6 +18,6 @@ export default class GlobalMessage extends AbstractSocketHandler {
 
         console.log(`${this.sender} sent message: ${msg}`);
         const formattedMsg = `${this.sender.username}: ${msg}`;
-        this.io.emit("global:message", formattedMsg);
+        DIContainer.socketIO.to("global").emit("global:message", formattedMsg);
     }
 }

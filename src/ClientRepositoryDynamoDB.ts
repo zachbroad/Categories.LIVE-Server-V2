@@ -1,5 +1,5 @@
-import IClientRepository from "./IClientRepository";
-import Client from "./Client";
+import IClientRepository from "./IClientRepository.js";
+import Client from "./Client.js";
 import { DynamoDB, PutItemCommand, GetItemCommand, DeleteItemCommand } from "@aws-sdk/client-dynamodb";
 
 
